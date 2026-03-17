@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Ho Credit Score™ — Autoevaluación</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:   #1B4332;
+      --midgreen:#2D6A4F;
+      --yellow:  #F5C400;
+      --red:     #C0392B;
+      --blue:    #1A5276;
+      --orange:  #D35400;
+      --cream:   #FFFDF7;
+      --gray:    #F2F2F2;
+      --dark:    #1A1A1A;
+      --text:    #333333;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--green);
+      min-height: 100vh;
+      padding: 0 0 60px 0;
+      color: var(--dark);
+    }
+    /* ── HEADER ── */
+    .header {
+      background: var(--green);
+      padding: 28px 20px 20px;
+      text-align: center;
+      border-bottom: 4px solid var(--yellow);
+    }
+    .bowtie { font-size: 28px; margin-bottom: 6px; display: block; }
+    .header h1 {
+      color: white;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+    .header h1 span { color: var(--yellow); }
+    .header .sub { color: #A8D5C2; font-size: 12px; margin-top: 6px; }
+    .header .instructions {
+      background: rgba(245,196,0,0.15);
+      border: 1px solid var(--yellow);
+      border-radius: 8px;
+      color: var(--yellow);
+      font-size: 13px;
+      font-weight: 600;
+      margin: 14px auto 0;
+      max-width: 480px;
+      padding: 10px 14px;
+      line-height: 1.5;
+    }
+    /* ── STICKY SCORE TRACKER ── */
+    .score-tracker {
+      background: var(--midgreen);
+      padding: 12px 20px 10px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 2px solid var(--yellow);
+    }
+    .score-tracker .label {
+      color: #A8D5C2;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .score-tracker .score-display {
+      color: white;
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+    .score-tracker .score-display span { color: var(--yellow); }
+    .progress-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--yellow);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    /* ── QUESTIONS ── */
+    .questions {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 16px 16px 0;
+    }
+    .question-card {
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .question-card.answered { border-color: var(--yellow); }
+    .q-header {
+      background: var(--cream);
+      padding: 12px 16px;
+      border-bottom: 1px solid #E8E8E8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .q-num {
+      background: var(--green);
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .q-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--dark);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .q-body { padding: 14px 16px 16px; }
+    /* ── ANCHOR HINTS ── */
+    .anchors {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 4px;
+    }
+    .anchor-bad, .anchor-mid, .anchor-good {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      line-height: 1.3;
+    }
+    .anchor-bad  { color: var(--red);    text-align: left;   flex: 1; }
+    .anchor-mid  { color: var(--orange); text-align: center; flex: 1; }
+    .anchor-good { color: var(--green);  text-align: right;  flex: 1; }
+    /* ── NUMBER BUTTONS 1–10 ── */
+    .num-group {
+      display: flex;
+      gap: 5px;
+      justify-content: space-between;
+    }
+    .num-btn {
+      flex: 1;
+      min-width: 0;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 2px solid #E0E0E0;
+      background: white;
+      font-size: 14px;
+      font-weight: 800;
+      color: #999;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.12s ease;
+      -webkit-tap-highlight-color: transparent;
+      padding: 0;
+    }
+    .num-btn:active { transform: scale(0.92); }
+    .num-btn.zone-red   { border-color: #FADBD8; color: #C0392B; }
+    .num-btn.zone-orange{ border-color: #FAD7A0; color: #D35400; }
+    .num-btn.zone-blue  { border-color: #AED6F1; color: #1A5276; }
+    .num-btn.zone-green { border-color: #A9DFBF; color: #1B4332; }
+    .num-btn.active.zone-red    { background: var(--red);    border-color: var(--red);    color: white; }
+    .num-btn.active.zone-orange { background: var(--orange); border-color: var(--orange); color: white; }
+    .num-btn.active.zone-blue   { background: var(--blue);   border-color: var(--blue);   color: white; }
+    .num-btn.active.zone-green  { background: var(--green);  border-color: var(--green);  color: white; }
+    /* ── RESULT SECTION ── */
+    .result-section {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 0 16px;
+      display: none;
+    }
+    .result-section.visible { display: block; }
+    .result-card {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      margin-bottom: 16px;
+    }
+    .result-header {
+      padding: 28px 20px 22px;
+      text-align: center;
+    }
+    .result-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 4px;
+    }
+    .result-score {
+      font-size: 72px;
+      font-weight: 900;
+      line-height: 1;
+      color: white;
+    }
+    .result-of {
+      font-size: 15px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 2px;
+    }
+    .result-tier {
+      font-size: 22px;
+      font-weight: 900;
+      color: white;
+      margin-top: 12px;
+      letter-spacing: 0.5px;
+    }
+    .result-body { background: white; padding: 20px; }
+    .verdict {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.6;
+      font-weight: 500;
+      text-align: center;
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #F0F0F0;
+    }
+    .breakdown-title {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #BBB;
+      margin-bottom: 10px;
+    }
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid #F5F5F5;
+      font-size: 13px;
+    }
+    .breakdown-row:last-child { border-bottom: none; }
+    .b-cat { color: var(--text); font-weight: 600; }
+    .b-score {
+      font-weight: 900;
+      font-size: 15px;
+      min-width: 40px;
+      text-align: right;
+    }
+    .b-score.high   { color: var(--green); }
+    .b-score.mid    { color: var(--orange); }
+    .b-score.low    { color: var(--red); }
+    /* ── SHARE ── */
+    .share-section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .share-section p {
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .share-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 800;
+      text-decoration: none;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      margin-bottom: 10px;
+    }
+    .btn-yellow { background: var(--yellow); color: var(--dark); }
+    .btn-green  { background: var(--green);  color: white; }
+    /* ── SMS SENDER ── */
+    .sms-section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .sms-section .sms-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--dark);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .sms-section .sms-sub {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 14px;
+    }
+    .sms-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0;
+      color: #CCC;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .sms-divider::before,
+    .sms-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #E8E8E8;
+    }
+    /* ── SHARE CARD (captured as image) ── */
+    .share-card {
+      background: var(--green);
+      border-radius: 16px;
+      padding: 28px 24px 22px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .share-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--yellow);
+    }
+    .share-card .sc-bowtie { font-size: 22px; margin-bottom: 6px; display: block; }
+    .share-card .sc-brand  {
+      color: #A8D5C2; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;
+    }
+    .share-card .sc-score  {
+      font-size: 72px; font-weight: 900; color: white; line-height: 1;
+    }
+    .share-card .sc-of     { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+    .share-card .sc-tier   {
+      display: inline-block;
+      background: var(--yellow); color: var(--dark);
+      font-size: 13px; font-weight: 900;
+      padding: 5px 14px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 18px;
+    }
+    .share-card .sc-rows   { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; }
+    .share-card .sc-row    {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-size: 11px;
+    }
+    .share-card .sc-row:last-child { border-bottom: none; }
+    .share-card .sc-cat    { color: rgba(255,255,255,0.7); font-weight: 600; }
+    .share-card .sc-val    { font-weight: 900; }
+    .sc-val.high { color: #6EE7B7; }
+    .sc-val.mid  { color: #FCD34D; }
+    .sc-val.low  { color: #FCA5A5; }
+    .share-card .sc-footer {
+      margin-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      padding-top: 12px;
+    }
+    .share-card .sc-footer-sent {
+      color: rgba(255,255,255,0.5);
+      font-size: 10px;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+    .share-card .sc-footer-link {
+      color: var(--yellow);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-share-img {
+      background: linear-gradient(135deg, #F5C400, #E0A800);
+      color: var(--dark);
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 800;
+      width: 100%;
+      cursor: pointer;
+      margin-bottom: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-share-img:active { opacity: 0.85; }
+    #share-card-capture {
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      width: 360px;
+    }
+    /* ── FOOTER ── */
+    .footer {
+      background: var(--green);
+      border-top: 3px solid var(--yellow);
+      padding: 16px 20px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .footer p { color: #A8D5C2; font-size: 11px; }
+    .footer a  { color: var(--yellow); text-decoration: none; font-weight: 700; }
+    @media (min-width: 600px) {
+      .header h1  { font-size: 32px; }
+      .num-btn    { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <span class="bowtie">🎀</span>
+  <h1>EL <span>HO CREDIT SCORE™</span></h1>
+  <p class="sub">Herramienta de Autoevaluación &nbsp;|&nbsp; Ho-Economics by PieroLiero</p>
+  <div class="instructions">
+    Él te mandó esto. Responde con honestidad.<br>
+    Tu puntaje lo determina todo. La clase está en sesión.
+  </div>
+</div>
+
+<!-- STICKY SCORE TRACKER -->
+<div class="score-tracker">
+  <div class="label">Puntaje Actual</div>
+  <div class="score-display"><span id="live-score">—</span> / 80</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<!-- QUESTIONS -->
+<div class="questions" id="questions-section"></div>
+
+<!-- RESULT SECTION -->
+<div class="result-section" id="result-section">
+  <div class="result-card">
+    <div class="result-header" id="result-header">
+      <div class="result-label">Tu Ho Credit Score</div>
+      <div class="result-score" id="result-score-num">—</div>
+      <div class="result-of">de 80</div>
+      <div class="result-tier" id="result-tier-label">—</div>
+    </div>
+    <div class="result-body">
+      <p class="verdict" id="result-verdict">—</p>
+      <div class="breakdown-title">Desglose de Puntaje</div>
+      <div id="breakdown-rows"></div>
+    </div>
+  </div>
+
+  <!-- HIDDEN SHARE CARD -->
+  <div id="share-card-capture">
+    <div class="share-card">
+      <span class="sc-bowtie">🎀</span>
+      <div class="sc-brand">Ho Credit Score™ by PieroLiero</div>
+      <div class="sc-score" id="sc-score">—</div>
+      <div class="sc-of">de 80</div>
+      <div class="sc-tier" id="sc-tier">—</div>
+      <div class="sc-rows" id="sc-rows"></div>
+      <div class="sc-footer">
+        <div class="sc-footer-sent">Enviado via Ho-Economics by PieroLiero</div>
+        <div class="sc-footer-link">whop.com/passport-pro/the-world-is-yours-0d/</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMAGE SHARE BUTTON -->
+  <div class="sms-section">
+    <div class="sms-title">🖼️ Compartir como Imagen</div>
+    <div class="sms-sub">Genera una tarjeta con tu puntaje para enviar por iMessage, WhatsApp o guardar en tu galería.</div>
+    <button class="btn-share-img" onclick="shareAsImage()" id="share-img-btn">
+      Generar y Compartir Tarjeta →
+    </button>
+  </div>
+
+  <!-- LINKS -->
+  <div class="share-section">
+    <p>O toma captura de tu puntaje y envíala manualmente.<br>Él se va a enterar de todas formas.</p>
+    <div class="sms-divider">o</div>
+    <a href="https://whop.com/passport-pro/the-world-is-yours-0d/" class="share-btn btn-green" target="_blank">
+      📚 Únete al Discord — $2.99/mes
+    </a>
+    <a href="https://www.instagram.com/pieroliero" class="share-btn btn-yellow" target="_blank">
+      Sígueme @PieroLiero
+    </a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Ho-Economics™ by PieroLiero &nbsp;•&nbsp;
+    <a href="https://whop.com/passport-pro/the-world-is-yours-0d/">whop.com/passport-pro</a>
+    &nbsp;•&nbsp; Clase Terminada.
+  </p>
+</div>
+
+<script>
+  /* ── DATA ── */
+  const questions = [
+    { id: 1, title: "Llegada y Puntualidad",      bad: "No apareció",        mid: "15+ min tarde",          good: "A tiempo"            },
+    { id: 2, title: "Precisión de Fotos",         bad: "Engaño total",       mid: "Más o menos",            good: "Igualita"             },
+    { id: 3, title: "Inversión de la Cita",       bad: "Cargos ocultos",     mid: "Sin sorpresas",          good: "Todo claro"           },
+    { id: 4, title: "Disciplina con el Teléfono", bad: "Texteando siempre",  mid: "Lo checó varias veces",  good: "Cel en la bolsa"      },
+    { id: 5, title: "Comunicación al Reservar",   bad: "Te dejó en visto",   mid: "Irregular",              good: "Rápida y clara"       },
+    { id: 6, title: "Sola Como se Acordó",        bad: "Trajo al crew",      mid: "Mencionó una amiga",     good: "Llegó sola"           },
+    { id: 7, title: "Comportamiento al Salir",    bad: "Drama total",        mid: "Un poco incómodo",       good: "Cero drama"           },
+    { id: 8, title: "Disponibilidad de Repetir",  bad: "Te bloqueó",         mid: "Quizás",                 good: "Disponible y lista"   }
+  ];
+
+  const tiers = [
+    {
+      min: 65, max: 80,
+      label: "⭐ TASA PRIME",
+      color: "#1B4332",
+      verdict: "Pasaste. Él va a volver — y le está diciendo al Discord puras cosas buenas de ti. Ese es el mayor honor."
+    },
+    {
+      min: 48, max: 64,
+      label: "TASA ESTÁNDAR",
+      color: "#1A5276",
+      verdict: "Eres confiable. No la opción más emocionante, pero cumples. Te está manteniendo en rotación. Por ahora. Hay espacio para subir."
+    },
+    {
+      min: 28, max: 47,
+      label: "⚠️ SUBPRIME",
+      color: "#D35400",
+      verdict: "Hay mucho espacio para mejorar. Él se dio cuenta. El Discord fue consultado. Considera esto una advertencia de cortesía."
+    },
+    {
+      min: 8, max: 27,
+      label: "🚨 PRÉSTAMO DEPREDADOR",
+      color: "#C0392B",
+      verdict: "Él ya sabe. El Discord ha sido completamente informado. Todo mercado tiene un sistema de reputación. El tuyo ya está archivado."
+    }
+  ];
+
+  /* ── ZONE HELPER ── */
+  function zone(n) {
+    if (n <= 3)  return 'zone-red';
+    if (n <= 5)  return 'zone-orange';
+    if (n <= 7)  return 'zone-blue';
+    return 'zone-green';
+  }
+
+  /* ── BUILD QUESTIONS ── */
+  const container = document.getElementById('questions-section');
+  questions.forEach(q => {
+    let btns = '';
+    for (let n = 1; n <= 10; n++) {
+      btns += `<button class="num-btn ${zone(n)}" data-q="${q.id}" data-val="${n}" onclick="pick(${q.id},${n},this)">${n}</button>`;
+    }
+    container.innerHTML += `
+      <div class="question-card" id="card-${q.id}">
+        <div class="q-header">
+          <div class="q-num">${q.id}</div>
+          <div class="q-title">${q.title}</div>
+        </div>
+        <div class="q-body">
+          <div class="anchors">
+            <span class="anchor-bad">1 — ${q.bad}</span>
+            <span class="anchor-mid">5 — ${q.mid}</span>
+            <span class="anchor-good">${q.good} — 10</span>
+          </div>
+          <div class="num-group">${btns}</div>
+        </div>
+      </div>`;
+  });
+
+  /* ── STATE ── */
+  const scores = {};
+
+  function pick(qNum, value, btn) {
+    document.querySelectorAll(`[data-q="${qNum}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    scores[qNum] = value;
+    document.getElementById('card-' + qNum).classList.add('answered');
+    updateScore();
+  }
+
+  function updateScore() {
+    const vals     = Object.values(scores);
+    const total    = vals.reduce((a, b) => a + b, 0);
+    const answered = vals.length;
+    document.getElementById('live-score').textContent = total;
+    document.getElementById('progress-fill').style.width = ((answered / 8) * 100) + '%';
+    if (answered === 8) showResult(total);
+  }
+
+  function getTier(total) {
+    return tiers.find(t => total >= t.min && total <= t.max) || tiers[tiers.length - 1];
+  }
+
+  function scoreClass(s) {
+    if (s >= 8) return 'high';
+    if (s >= 5) return 'mid';
+    return 'low';
+  }
+
+  async function shareAsImage() {
+    const btn = document.getElementById('share-img-btn');
+    btn.textContent = 'Generando…';
+    btn.disabled = true;
+
+    const total = Object.values(scores).reduce((a, b) => a + b, 0);
+    const tier  = getTier(total);
+
+    document.getElementById('sc-score').textContent = total;
+    document.getElementById('sc-tier').textContent  = tier.label.replace(/[⭐⚠️🚨]/g, '').trim();
+
+    const rows = document.getElementById('sc-rows');
+    rows.innerHTML = '';
+    questions.forEach(q => {
+      const s   = scores[q.id];
+      const cls = s >= 8 ? 'high' : s >= 5 ? 'mid' : 'low';
+      rows.innerHTML += `
+        <div class="sc-row">
+          <span class="sc-cat">${q.title}</span>
+          <span class="sc-val ${cls}">${s}/10</span>
+        </div>`;
+    });
+
+    const el = document.getElementById('share-card-capture');
+    el.style.left = '-9999px';
+
+    try {
+      const canvas = await html2canvas(el.firstElementChild, {
+        scale: 3,
+        backgroundColor: null,
+        useCORS: true,
+        logging: false
+      });
+
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], 'HoCreditScore.png', { type: 'image/png' });
+
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'Mi Ho Credit Score™',
+              text: `Mi Ho Credit Score™: ${total}/80 — ${tier.label.replace(/[⭐⚠️🚨]/g,'').trim()}\n\nEnviado via Ho-Economics by PieroLiero\nhttps://whop.com/passport-pro/the-world-is-yours-0d/`
+            });
+          } catch (e) {
+            if (e.name !== 'AbortError') {
+              try {
+                await navigator.share({
+                  title: 'Mi Ho Credit Score™',
+                  text: `Mi Ho Credit Score™: ${total}/80 — ${tier.label.replace(/[⭐⚠️🚨]/g,'').trim()}\n\nEnviado via Ho-Economics by PieroLiero\nhttps://whop.com/passport-pro/the-world-is-yours-0d/`
+                });
+              } catch (e2) {
+                if (e2.name !== 'AbortError') downloadImage(canvas);
+              }
+            }
+          }
+        } else {
+          downloadImage(canvas);
+        }
+
+        btn.textContent = 'Generar y Compartir Tarjeta →';
+        btn.disabled = false;
+      }, 'image/png');
+
+    } catch (e) {
+      alert('No se pudo generar la imagen. Intenta tomar una captura de pantalla.');
+      btn.textContent = 'Generar y Compartir Tarjeta →';
+      btn.disabled = false;
+    }
+  }
+
+  function downloadImage(canvas) {
+    const link  = document.createElement('a');
+    link.download = 'HoCreditScore.png';
+    link.href     = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  function showResult(total) {
+    const tier = getTier(total);
+
+    document.getElementById('result-score-num').textContent  = total;
+    document.getElementById('result-tier-label').textContent = tier.label;
+    document.getElementById('result-verdict').textContent    = tier.verdict;
+    document.getElementById('result-header').style.background = tier.color;
+
+    const rows = document.getElementById('breakdown-rows');
+    rows.innerHTML = '';
+    questions.forEach(q => {
+      const s = scores[q.id];
+      rows.innerHTML += `
+        <div class="breakdown-row">
+          <span class="b-cat">${q.title}</span>
+          <span class="b-score ${scoreClass(s)}">${s} / 10</span>
+        </div>`;
+    });
+
+    const resultEl = document.getElementById('result-section');
+    resultEl.classList.add('visible');
+    setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+
+    document.querySelector('#share-card-capture .share-card').style.background = tier.color;
+  }
+</script>
+</body>
+</html>

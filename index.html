@@ -452,7 +452,7 @@
 <!-- STICKY SCORE TRACKER -->
 <div class="score-tracker">
   <div class="label">Puntaje Actual</div>
-  <div class="score-display"><span id="live-score">—</span> / 80</div>
+  <div class="score-display"><span id="live-score">—</span> / 850</div>
   <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
 </div>
 
@@ -465,7 +465,7 @@
     <div class="result-header" id="result-header">
       <div class="result-label">Tu Ho Credit Score</div>
       <div class="result-score" id="result-score-num">—</div>
-      <div class="result-of">de 80</div>
+      <div class="result-of">de 850</div>
       <div class="result-tier" id="result-tier-label">—</div>
     </div>
     <div class="result-body">
@@ -481,7 +481,7 @@
       <span class="sc-bowtie">🎀</span>
       <div class="sc-brand">Ho Credit Score™ by PieroLiero</div>
       <div class="sc-score" id="sc-score">—</div>
-      <div class="sc-of">de 80</div>
+      <div class="sc-of">de 850</div>
       <div class="sc-tier" id="sc-tier">—</div>
       <div class="sc-rows" id="sc-rows"></div>
       <div class="sc-footer">
@@ -534,39 +534,56 @@
     { id: 8, title: "Disponibilidad de Repetir",  bad: "Te bloqueó",         mid: "Quizás",                 good: "Disponible y lista"   }
   ];
 
+  const MAX_RAW = 80;
+  const MAX_SCALED = 850;
+
   const tiers = [
     {
-      min: 65, max: 80,
+      min: 700, max: 850,
       label: "⭐ TASA PRIME",
       color: "#1B4332",
       verdict: "Pasaste. Él va a volver — y le está diciendo al Discord puras cosas buenas de ti. Ese es el mayor honor."
     },
     {
-      min: 48, max: 64,
+      min: 500, max: 699,
       label: "TASA ESTÁNDAR",
       color: "#1A5276",
       verdict: "Eres confiable. No la opción más emocionante, pero cumples. Te está manteniendo en rotación. Por ahora. Hay espacio para subir."
     },
     {
-      min: 28, max: 47,
+      min: 300, max: 499,
       label: "⚠️ SUBPRIME",
       color: "#D35400",
       verdict: "Hay mucho espacio para mejorar. Él se dio cuenta. El Discord fue consultado. Considera esto una advertencia de cortesía."
     },
     {
-      min: 8, max: 27,
+      min: 0, max: 299,
       label: "🚨 PRÉSTAMO DEPREDADOR",
       color: "#C0392B",
       verdict: "Él ya sabe. El Discord ha sido completamente informado. Todo mercado tiene un sistema de reputación. El tuyo ya está archivado."
     }
   ];
 
-  /* ── ZONE HELPER ── */
+  /* ── HELPERS ── */
+  function scaledScore(raw) {
+    return Math.round((raw / MAX_RAW) * MAX_SCALED);
+  }
+
   function zone(n) {
     if (n <= 3)  return 'zone-red';
     if (n <= 5)  return 'zone-orange';
     if (n <= 7)  return 'zone-blue';
     return 'zone-green';
+  }
+
+  function getTier(scaled) {
+    return tiers.find(t => scaled >= t.min && scaled <= t.max) || tiers[tiers.length - 1];
+  }
+
+  function scoreClass(rawVal) {
+    if (rawVal >= 8) return 'high';
+    if (rawVal >= 5) return 'mid';
+    return 'low';
   }
 
   /* ── BUILD QUESTIONS ── */
@@ -606,29 +623,23 @@
 
   function updateScore() {
     const vals     = Object.values(scores);
-    const total    = vals.reduce((a, b) => a + b, 0);
+    const raw      = vals.reduce((a, b) => a + b, 0);
     const answered = vals.length;
+    const total    = scaledScore(raw);
+
     document.getElementById('live-score').textContent = total;
     document.getElementById('progress-fill').style.width = ((answered / 8) * 100) + '%';
     if (answered === 8) showResult(total);
   }
 
-  function getTier(total) {
-    return tiers.find(t => total >= t.min && total <= t.max) || tiers[tiers.length - 1];
-  }
-
-  function scoreClass(s) {
-    if (s >= 8) return 'high';
-    if (s >= 5) return 'mid';
-    return 'low';
-  }
-
+  /* ── SHARE AS IMAGE ── */
   async function shareAsImage() {
     const btn = document.getElementById('share-img-btn');
     btn.textContent = 'Generando…';
     btn.disabled = true;
 
-    const total = Object.values(scores).reduce((a, b) => a + b, 0);
+    const raw   = Object.values(scores).reduce((a, b) => a + b, 0);
+    const total = scaledScore(raw);
     const tier  = getTier(total);
 
     document.getElementById('sc-score').textContent = total;
@@ -665,14 +676,14 @@
             await navigator.share({
               files: [file],
               title: 'Mi Ho Credit Score™',
-              text: `Mi Ho Credit Score™: ${total}/80 — ${tier.label.replace(/[⭐⚠️🚨]/g,'').trim()}\n\nEnviado via Ho-Economics by PieroLiero\nhttps://whop.com/passport-pro/the-world-is-yours-0d/`
+              text: `Mi Ho Credit Score™: ${total}/850 — ${tier.label.replace(/[⭐⚠️🚨]/g,'').trim()}\n\nEnviado via Ho-Economics by PieroLiero\nhttps://whop.com/passport-pro/the-world-is-yours-0d/`
             });
           } catch (e) {
             if (e.name !== 'AbortError') {
               try {
                 await navigator.share({
                   title: 'Mi Ho Credit Score™',
-                  text: `Mi Ho Credit Score™: ${total}/80 — ${tier.label.replace(/[⭐⚠️🚨]/g,'').trim()}\n\nEnviado via Ho-Economics by PieroLiero\nhttps://whop.com/passport-pro/the-world-is-yours-0d/`
+                  text: `Mi Ho Credit Score™: ${total}/850 — ${tier.label.replace(/[⭐⚠️🚨]/g,'').trim()}\n\nEnviado via Ho-Economics by PieroLiero\nhttps://whop.com/passport-pro/the-world-is-yours-0d/`
                 });
               } catch (e2) {
                 if (e2.name !== 'AbortError') downloadImage(canvas);
@@ -701,6 +712,7 @@
     link.click();
   }
 
+  /* ── SHOW RESULT ── */
   function showResult(total) {
     const tier = getTier(total);
 

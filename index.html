@@ -414,6 +414,48 @@
       -webkit-tap-highlight-color: transparent;
     }
     .btn-share-img:active { opacity: 0.85; }
+
+    /* ── IG SAVE OVERLAY ── */
+    .ig-save-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .ig-save-overlay img {
+      max-width: 85%;
+      max-height: 60vh;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    }
+    .ig-save-hint {
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 18px;
+      line-height: 1.5;
+    }
+    .ig-save-hint span {
+      color: var(--yellow);
+    }
+    .ig-close-btn {
+      margin-top: 16px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      border-radius: 8px;
+      padding: 10px 28px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
     .share-card-wrapper {
       position: relative;
       width: 0;
@@ -680,35 +722,44 @@
 
       wrapper.style.overflow = 'hidden';
 
-      canvas.toBlob(async (blob) => {
-        const file = new File([blob], 'HoCreditScore.png', { type: 'image/png' });
+      const isIG = /Instagram/i.test(navigator.userAgent);
 
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: 'Mi Ho Credit Score™',
-              text: `Mi Ho Credit Score™: ${total}/850 — ${tier.label.replace(/[⭐⚠️🚨]/g,'').trim()}\n\nEnviado via Ho-Economics by PieroLiero\nhttps://whop.com/passport-pro/the-world-is-yours-0d/`
-            });
-          } catch (e) {
-            if (e.name !== 'AbortError') {
-              try {
-                await navigator.share({
-                  title: 'Mi Ho Credit Score™',
-                  text: `Mi Ho Credit Score™: ${total}/850 — ${tier.label.replace(/[⭐⚠️🚨]/g,'').trim()}\n\nEnviado via Ho-Economics by PieroLiero\nhttps://whop.com/passport-pro/the-world-is-yours-0d/`
-                });
-              } catch (e2) {
-                if (e2.name !== 'AbortError') downloadImage(canvas);
-              }
-            }
-          }
-        } else {
-          downloadImage(canvas);
-        }
-
+      if (isIG) {
+        const dataURL = canvas.toDataURL('image/png');
+        showIGOverlay(dataURL);
         btn.textContent = 'Generar y Compartir Tarjeta →';
         btn.disabled = false;
-      }, 'image/png');
+      } else {
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], 'HoCreditScore.png', { type: 'image/png' });
+
+          if (navigator.share) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: 'Mi Ho Credit Score™',
+                text: `Mi Ho Credit Score™: ${total}/850 — ${tier.label.replace(/[⭐⚠️🚨]/g,'').trim()}\n\nEnviado via Ho-Economics by PieroLiero\nhttps://whop.com/passport-pro/the-world-is-yours-0d/`
+              });
+            } catch (e) {
+              if (e.name !== 'AbortError') {
+                try {
+                  await navigator.share({
+                    title: 'Mi Ho Credit Score™',
+                    text: `Mi Ho Credit Score™: ${total}/850 — ${tier.label.replace(/[⭐⚠️🚨]/g,'').trim()}\n\nEnviado via Ho-Economics by PieroLiero\nhttps://whop.com/passport-pro/the-world-is-yours-0d/`
+                  });
+                } catch (e2) {
+                  if (e2.name !== 'AbortError') downloadImage(canvas);
+                }
+              }
+            }
+          } else {
+            downloadImage(canvas);
+          }
+
+          btn.textContent = 'Generar y Compartir Tarjeta →';
+          btn.disabled = false;
+        }, 'image/png');
+      }
 
     } catch (e) {
       wrapper.style.overflow = 'hidden';
@@ -723,6 +774,19 @@
     link.download = 'HoCreditScore.png';
     link.href     = canvas.toDataURL('image/png');
     link.click();
+  }
+
+  function showIGOverlay(dataURL) {
+    const overlay = document.createElement('div');
+    overlay.className = 'ig-save-overlay';
+    overlay.innerHTML = `
+      <img src="${dataURL}" alt="Ho Credit Score Card" />
+      <div class="ig-save-hint">
+        <span>Mantén presionada la imagen</span> para guardarla en tu galería.
+      </div>
+      <button class="ig-close-btn" onclick="this.parentElement.remove()">Cerrar</button>
+    `;
+    document.body.appendChild(overlay);
   }
 
   /* ── SHOW RESULT ── */

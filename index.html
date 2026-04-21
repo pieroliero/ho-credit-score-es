@@ -388,12 +388,6 @@
       padding-top: 12px;
     }
     .share-card .sc-footer-sent {
-      color: rgba(255,255,255,0.5);
-      font-size: 10px;
-      font-weight: 600;
-      margin-bottom: 3px;
-    }
-    .share-card .sc-footer-link {
       color: var(--yellow);
       font-size: 11px;
       font-weight: 800;
@@ -417,9 +411,10 @@
 
     /* ── IG SAVE OVERLAY ── */
     .ig-save-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.85);
+      position: absolute;
+      left: 0; right: 0;
+      height: 100vh;
+      background: rgba(0,0,0,0.92);
       z-index: 9999;
       display: flex;
       flex-direction: column;
@@ -535,7 +530,6 @@
         <div class="sc-rows" id="sc-rows"></div>
         <div class="sc-footer">
           <div class="sc-footer-sent">Enviado via Ho-Economics by PieroLiero</div>
-          <div class="sc-footer-link">whop.com/passport-pro/the-world-is-yours-0d/</div>
         </div>
       </div>
     </div>
@@ -779,6 +773,7 @@
   function showIGOverlay(dataURL) {
     const overlay = document.createElement('div');
     overlay.className = 'ig-save-overlay';
+    overlay.style.top = window.scrollY + 'px';
     overlay.innerHTML = `
       <img src="${dataURL}" alt="Ho Credit Score Card" />
       <div class="ig-save-hint">
@@ -787,6 +782,7 @@
       <button class="ig-close-btn" onclick="this.parentElement.remove()">Cerrar</button>
     `;
     document.body.appendChild(overlay);
+    window.scrollTo({ top: window.scrollY, behavior: 'instant' });
   }
 
   /* ── SHOW RESULT ── */

@@ -409,46 +409,29 @@
     }
     .btn-share-img:active { opacity: 0.85; }
 
-    /* ── IG SAVE OVERLAY ── */
-    .ig-save-overlay {
-      position: absolute;
-      left: 0; right: 0;
-      height: 100vh;
-      background: rgba(0,0,0,0.92);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .ig-save-overlay img {
-      max-width: 85%;
-      max-height: 60vh;
+    /* ── IG SAVE INLINE ── */
+    .ig-save-inline {
+      background: var(--dark);
       border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      padding: 20px 16px;
+      text-align: center;
+      margin-top: 12px;
+    }
+    .ig-save-inline img {
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
     .ig-save-hint {
       color: white;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       text-align: center;
-      margin-top: 18px;
+      margin-top: 14px;
       line-height: 1.5;
     }
     .ig-save-hint span {
       color: var(--yellow);
-    }
-    .ig-close-btn {
-      margin-top: 16px;
-      background: rgba(255,255,255,0.15);
-      border: 1px solid rgba(255,255,255,0.3);
-      color: white;
-      border-radius: 8px;
-      padding: 10px 28px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
     }
 
     .share-card-wrapper {
@@ -771,18 +754,21 @@
   }
 
   function showIGOverlay(dataURL) {
-    const overlay = document.createElement('div');
-    overlay.className = 'ig-save-overlay';
-    overlay.style.top = window.scrollY + 'px';
-    overlay.innerHTML = `
+    const old = document.getElementById('ig-save-card');
+    if (old) old.remove();
+
+    const card = document.createElement('div');
+    card.id = 'ig-save-card';
+    card.className = 'ig-save-inline';
+    card.innerHTML = `
       <img src="${dataURL}" alt="Ho Credit Score Card" />
       <div class="ig-save-hint">
         <span>Mantén presionada la imagen</span> para guardarla en tu galería.
       </div>
-      <button class="ig-close-btn" onclick="this.parentElement.remove()">Cerrar</button>
     `;
-    document.body.appendChild(overlay);
-    window.scrollTo({ top: window.scrollY, behavior: 'instant' });
+
+    const btn = document.getElementById('share-img-btn');
+    btn.closest('.sms-section').after(card);
   }
 
   /* ── SHOW RESULT ── */
